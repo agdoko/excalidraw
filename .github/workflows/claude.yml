@@ -1,0 +1,98 @@
+name: Claude Code Assistant
+
+on:
+  # Respond to @claude mentions in PR and issue comments
+  issue_comment:
+    types: [created]
+
+  # Respond to PR review comments
+  pull_request_review_comment:
+    types: [created]
+
+  # Optional: Auto-review new PRs (uncomment to enable)
+  # pull_request:
+  #   types: [opened, synchronize]
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+
+    # Required permissions for Claude to work
+    permissions:
+      id-token: write       # For OIDC authentication with Claude GitHub App
+      contents: write       # To read/write code and create branches
+      pull-requests: write  # To comment on PRs
+      issues: write         # To comment on issues
+
+    steps:
+      - name: Run Claude Code Action
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Your Anthropic API key from repository secrets
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Trigger phrase to look for in comments (default: @claude)
+          trigger_phrase: "@claude"
+
+          # Branch prefix for Claude's commits
+          branch_prefix: "claude/"
+
+          # Use sticky comments (one comment that updates vs multiple)
+          use_sticky_comment: "false"
+
+          # MCP Configuration: Atlassian/Jira integration
+          # This gives Claude access to Jira tickets via the Atlassian MCP server
+          settings: |
+            {
+              "mcpServers": {
+                "atlassian": {
+                  "command": "npx",
+                  "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"],
+                  "env": {}
+                }
+              }
+            }
+
+          # Optional: Customize Claude's prompt for Excalidraw
+          # prompt: |
+          #   You are a helpful assistant for the Excalidraw project.
+          #   When reviewing code:
+          #   - Check TypeScript type safety
+          #   - Validate React best practices
+          #   - Consider performance implications for canvas rendering
+          #   - Ensure changes align with Excalidraw's architecture
+
+  # Optional: Automatic PR review when opened
+  # Uncomment this job to enable automatic code review for all new PRs
+  # claude-auto-review:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'pull_request'
+  #
+  #   permissions:
+  #     id-token: write
+  #     contents: write
+  #     pull-requests: write
+  #     issues: write
+  #
+  #   steps:
+  #     - uses: anthropics/claude-code-action@v1
+  #       with:
+  #         anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+  #         settings: |
+  #           {
+  #             "mcpServers": {
+  #               "atlassian": {
+  #                 "command": "npx",
+  #                 "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"],
+  #                 "env": {}
+  #               }
+  #             }
+  #           }
+  #         prompt: |
+  #           Review this PR for:
+  #           - Code quality and best practices
+  #           - TypeScript type safety
+  #           - React component patterns
+  #           - Performance considerations for canvas operations
+  #           - Testing coverage
+  #           - Alignment with Jira ticket requirements (if referenced)

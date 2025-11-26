@@ -45,10 +45,9 @@ jobs:
           # Use sticky comments (one comment that updates vs multiple)
           use_sticky_comment: "false"
 
-          # MCP Configuration: Atlassian/Jira integration with API token
-          # This gives Claude access to Jira tickets via the MCP server
-          settings: |
-            {
+          # Claude CLI arguments for MCP integration
+          claude_args: |
+            --mcp-config '{
               "mcpServers": {
                 "atlassian": {
                   "command": "npx",
@@ -60,7 +59,8 @@ jobs:
                   }
                 }
               }
-            }
+            }'
+            --allowedTools "mcp__atlassian__*"
 
           # Optional: Customize Claude's prompt for Excalidraw
           # prompt: |
@@ -87,8 +87,8 @@ jobs:
   #     - uses: anthropics/claude-code-action@v1
   #       with:
   #         anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-  #         settings: |
-  #           {
+  #         claude_args: |
+  #           --mcp-config '{
   #             "mcpServers": {
   #               "atlassian": {
   #                 "command": "npx",
@@ -100,7 +100,8 @@ jobs:
   #                 }
   #               }
   #             }
-  #           }
+  #           }'
+  #           --allowedTools "mcp__atlassian__*"
   #         prompt: |
   #           Review this PR for:
   #           - Code quality and best practices

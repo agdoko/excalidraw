@@ -45,15 +45,19 @@ jobs:
           # Use sticky comments (one comment that updates vs multiple)
           use_sticky_comment: "false"
 
-          # MCP Configuration: Atlassian/Jira integration
-          # This gives Claude access to Jira tickets via the Atlassian MCP server
+          # MCP Configuration: Atlassian/Jira integration with API token
+          # This gives Claude access to Jira tickets via the MCP server
           settings: |
             {
               "mcpServers": {
                 "atlassian": {
                   "command": "npx",
-                  "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"],
-                  "env": {}
+                  "args": ["-y", "@sooperset/mcp-atlassian"],
+                  "env": {
+                    "JIRA_URL": "${{ secrets.JIRA_URL }}",
+                    "JIRA_USERNAME": "${{ secrets.JIRA_USERNAME }}",
+                    "JIRA_API_TOKEN": "${{ secrets.JIRA_API_TOKEN }}"
+                  }
                 }
               }
             }
@@ -88,8 +92,12 @@ jobs:
   #             "mcpServers": {
   #               "atlassian": {
   #                 "command": "npx",
-  #                 "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"],
-  #                 "env": {}
+  #                 "args": ["-y", "@sooperset/mcp-atlassian"],
+  #                 "env": {
+  #                   "JIRA_URL": "${{ secrets.JIRA_URL }}",
+  #                   "JIRA_USERNAME": "${{ secrets.JIRA_USERNAME }}",
+  #                   "JIRA_API_TOKEN": "${{ secrets.JIRA_API_TOKEN }}"
+  #                 }
   #               }
   #             }
   #           }

@@ -73,6 +73,7 @@ The Excalidraw editor (npm package) supports:
 - ➡️&nbsp;Arrow-binding & labeled arrows.
 - 🔙&nbsp;Undo / Redo.
 - 🔍&nbsp;Zoom and panning support.
+- ⌨️&nbsp;Keyboard shortcuts support.
 
 ## Excalidraw.com
 

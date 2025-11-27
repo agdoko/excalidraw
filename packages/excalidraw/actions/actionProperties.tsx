@@ -1523,6 +1523,9 @@ export const actionChangeRoundness = register<"sharp" | "round">({
     // Placeholder for radius slider implementation (MJT-1)
     const radiusSliderEnabled = false; // Feature flag for gradual rollout
 
+    // Next step: Import Range component and add conditional rendering
+    // when radiusSliderEnabled is true and round edge is selected
+
     return (
       <fieldset>
         <legend>{t("labels.edges")}</legend>

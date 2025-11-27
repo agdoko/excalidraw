@@ -1507,17 +1507,21 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       (el) => el.roundness?.type === ROUNDNESS.LEGACY,
     );
 
-    // TODO MJT-1: Add radius slider control
+    // MJT-1: Variable radius slider control for rectangles
     // Jira ticket: https://arnaud-demo.atlassian.net/browse/MJT-1
     // Request: Allow users to adjust rectangle corner radius with a slider
     // instead of just binary sharp/round options
     //
+    // Implementation status: In Progress - Preparing infrastructure
     // Implementation notes:
     // - Add Range slider component below RadioSelection
     // - Control roundness.value property (currently defaults to DEFAULT_ADAPTIVE_RADIUS = 32px)
     // - Should only show when "round" is selected and element uses ADAPTIVE_RADIUS
     // - Range could be 0-64px or similar reasonable bounds
     // - Example: <Range min={0} max={64} step={1} value={...} onChange={...} />
+
+    // Placeholder for radius slider implementation (MJT-1)
+    const radiusSliderEnabled = false; // Feature flag for gradual rollout
 
     return (
       <fieldset>

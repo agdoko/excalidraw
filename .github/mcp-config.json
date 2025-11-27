@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "command": "npx",
+      "args": ["-y", "@sooperset/mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "JIRA_URL_PLACEHOLDER",
+        "JIRA_USERNAME": "JIRA_USERNAME_PLACEHOLDER",
+        "JIRA_API_TOKEN": "JIRA_API_TOKEN_PLACEHOLDER"
+      }
+    }
+  }
+}

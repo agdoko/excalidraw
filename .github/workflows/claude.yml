@@ -30,6 +30,24 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Create MCP Config with Secrets
+        run: |
+          cat > /tmp/mcp-config.json << 'EOF'
+          {
+            "mcpServers": {
+              "atlassian": {
+                "command": "npx",
+                "args": ["-y", "@sooperset/mcp-atlassian"],
+                "env": {
+                  "JIRA_URL": "${{ secrets.JIRA_URL }}",
+                  "JIRA_USERNAME": "${{ secrets.JIRA_USERNAME }}",
+                  "JIRA_API_TOKEN": "${{ secrets.JIRA_API_TOKEN }}"
+                }
+              }
+            }
+          }
+          EOF
+
       - name: Run Claude Code Action
         uses: anthropics/claude-code-action@v1
         with:
@@ -46,7 +64,10 @@ jobs:
           use_sticky_comment: "false"
 
           # Claude CLI arguments for MCP integration
-          claude_args: '--mcp-config ''{"mcpServers":{"atlassian":{"command":"npx","args":["-y","@sooperset/mcp-atlassian"],"env":{"JIRA_URL":"${{ secrets.JIRA_URL }}","JIRA_USERNAME":"${{ secrets.JIRA_USERNAME }}","JIRA_API_TOKEN":"${{ secrets.JIRA_API_TOKEN }}"}}}}'' --allowedTools mcp__atlassian__*'
+          # Use the config file created above and add Atlassian tools to allowed list
+          claude_args: |
+            --mcp-config /tmp/mcp-config.json
+            --allowedTools "mcp__atlassian__get_issue,mcp__atlassian__search_issues,mcp__atlassian__create_issue,mcp__atlassian__update_issue"
 
           # Optional: Customize Claude's prompt for Excalidraw
           # prompt: |

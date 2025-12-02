@@ -8,6 +8,7 @@ import {
   DEFAULT_ELEMENT_STROKE_COLOR_PALETTE,
   DEFAULT_ELEMENT_STROKE_PICKS,
   ARROW_TYPE,
+  DEFAULT_ADAPTIVE_RADIUS,
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
   FONT_FAMILY,
@@ -1468,11 +1469,33 @@ export const actionChangeVerticalAlign = register<VerticalAlign>({
   },
 });
 
-export const actionChangeRoundness = register<"sharp" | "round">({
+export const actionChangeRoundness = register<
+  "sharp" | "round" | { type: "value"; value: number }
+>({
   name: "changeRoundness",
   label: "Change edge roundness",
   trackEvent: false,
   perform: (elements, appState, value) => {
+    // Handle slider value change
+    if (typeof value === "object" && value.type === "value") {
+      return {
+        elements: changeProperty(elements, appState, (el) => {
+          if (isElbowArrow(el) || !el.roundness) {
+            return el;
+          }
+          return newElementWith(el, {
+            roundness: {
+              ...el.roundness,
+              value: value.value,
+            },
+          });
+        }),
+        appState,
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      };
+    }
+
+    // Handle sharp/round toggle
     return {
       elements: changeProperty(elements, appState, (el) => {
         if (isElbowArrow(el)) {
@@ -1492,7 +1515,7 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       }),
       appState: {
         ...appState,
-        currentItemRoundness: value,
+        currentItemRoundness: value as "sharp" | "round",
       },
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
@@ -1506,6 +1529,32 @@ export const actionChangeRoundness = register<"sharp" | "round">({
     const hasLegacyRoundness = targetElements.some(
       (el) => el.roundness?.type === ROUNDNESS.LEGACY,
     );
+
+    const roundnessValue = getFormValue(
+      elements,
+      app,
+      (element) =>
+        hasLegacyRoundness ? null : element.roundness ? "round" : "sharp",
+      (element) =>
+        !isArrowElement(element) && element.hasOwnProperty("roundness"),
+      (hasSelection) =>
+        hasSelection ? null : appState.currentItemRoundness,
+    );
+
+    const isRound = roundnessValue === "round";
+
+    // Get the current radius value from elements
+    const radiusValue = isRound
+      ? getFormValue(
+          elements,
+          app,
+          (element) => element.roundness?.value ?? DEFAULT_ADAPTIVE_RADIUS,
+          (element) =>
+            !isArrowElement(element) &&
+            element.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS,
+          () => DEFAULT_ADAPTIVE_RADIUS,
+        )
+      : DEFAULT_ADAPTIVE_RADIUS;
 
     return (
       <fieldset>
@@ -1525,24 +1574,36 @@ export const actionChangeRoundness = register<"sharp" | "round">({
                 icon: EdgeRoundIcon,
               },
             ]}
-            value={getFormValue(
-              elements,
-              app,
-              (element) =>
-                hasLegacyRoundness
-                  ? null
-                  : element.roundness
-                  ? "round"
-                  : "sharp",
-              (element) =>
-                !isArrowElement(element) && element.hasOwnProperty("roundness"),
-              (hasSelection) =>
-                hasSelection ? null : appState.currentItemRoundness,
-            )}
+            value={roundnessValue}
             onChange={(value) => updateData(value)}
           />
           {renderAction("togglePolygon")}
         </div>
+        {isRound && (
+          <div className="buttonList" style={{ marginTop: "0.5rem" }}>
+            <label
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            >
+              <span style={{ fontSize: "0.85rem" }}>
+                {t("labels.cornerRadius")}
+              </span>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                step="1"
+                value={radiusValue ?? DEFAULT_ADAPTIVE_RADIUS}
+                onChange={(e) =>
+                  updateData({ type: "value", value: +e.target.value })
+                }
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: "0.75rem", minWidth: "2rem" }}>
+                {radiusValue}
+              </span>
+            </label>
+          </div>
+        )}
       </fieldset>
     );
   },

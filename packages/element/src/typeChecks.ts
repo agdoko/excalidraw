@@ -310,10 +310,11 @@ export const isUsingAdaptiveRadius = (type: string) =>
   type === "rectangle" ||
   type === "embeddable" ||
   type === "iframe" ||
-  type === "image";
+  type === "image" ||
+  type === "diamond";
 
 export const isUsingProportionalRadius = (type: string) =>
-  type === "line" || type === "arrow" || type === "diamond";
+  type === "line" || type === "arrow";
 
 export const canApplyRoundnessTypeToElement = (
   roundnessType: RoundnessType,

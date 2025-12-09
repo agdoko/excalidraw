@@ -85,6 +85,7 @@ import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
 import { Range } from "../components/Range";
+import { CornerRadiusRange } from "../components/CornerRadiusRange";
 import {
   ArrowheadArrowIcon,
   ArrowheadBarIcon,
@@ -1468,7 +1469,9 @@ export const actionChangeVerticalAlign = register<VerticalAlign>({
   },
 });
 
-export const actionChangeRoundness = register<"sharp" | "round">({
+export const actionChangeRoundness = register<
+  "sharp" | "round" | { radius: number }
+>({
   name: "changeRoundness",
   label: "Change edge roundness",
   trackEvent: false,
@@ -1477,6 +1480,18 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       elements: changeProperty(elements, appState, (el) => {
         if (isElbowArrow(el)) {
           return el;
+        }
+
+        // Handle the case where value is an object with radius
+        if (typeof value === "object" && "radius" in value) {
+          return newElementWith(el, {
+            roundness: {
+              type: isUsingAdaptiveRadius(el.type)
+                ? ROUNDNESS.ADAPTIVE_RADIUS
+                : ROUNDNESS.PROPORTIONAL_RADIUS,
+              value: value.radius,
+            },
+          });
         }
 
         return newElementWith(el, {
@@ -1492,7 +1507,8 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       }),
       appState: {
         ...appState,
-        currentItemRoundness: value,
+        currentItemRoundness:
+          typeof value === "string" ? value : appState.currentItemRoundness,
       },
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
@@ -1507,43 +1523,50 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       (el) => el.roundness?.type === ROUNDNESS.LEGACY,
     );
 
+    const selectedElements = app.scene.getSelectedElements(app.state);
+    const isRoundSelected = getFormValue(
+      elements,
+      app,
+      (element) =>
+        hasLegacyRoundness ? null : element.roundness ? "round" : "sharp",
+      (element) =>
+        !isArrowElement(element) && element.hasOwnProperty("roundness"),
+      (hasSelection) => (hasSelection ? null : appState.currentItemRoundness),
+    );
+
     return (
-      <fieldset>
-        <legend>{t("labels.edges")}</legend>
-        <div className="buttonList">
-          <RadioSelection
-            group="edges"
-            options={[
-              {
-                value: "sharp",
-                text: t("labels.sharp"),
-                icon: EdgeSharpIcon,
-              },
-              {
-                value: "round",
-                text: t("labels.round"),
-                icon: EdgeRoundIcon,
-              },
-            ]}
-            value={getFormValue(
-              elements,
-              app,
-              (element) =>
-                hasLegacyRoundness
-                  ? null
-                  : element.roundness
-                  ? "round"
-                  : "sharp",
-              (element) =>
-                !isArrowElement(element) && element.hasOwnProperty("roundness"),
-              (hasSelection) =>
-                hasSelection ? null : appState.currentItemRoundness,
-            )}
-            onChange={(value) => updateData(value)}
+      <>
+        <fieldset>
+          <legend>{t("labels.edges")}</legend>
+          <div className="buttonList">
+            <RadioSelection
+              group="edges"
+              options={[
+                {
+                  value: "sharp",
+                  text: t("labels.sharp"),
+                  icon: EdgeSharpIcon,
+                },
+                {
+                  value: "round",
+                  text: t("labels.round"),
+                  icon: EdgeRoundIcon,
+                },
+              ]}
+              value={isRoundSelected}
+              onChange={(value) => updateData(value)}
+            />
+            {renderAction("togglePolygon")}
+          </div>
+        </fieldset>
+        {isRoundSelected === "round" && selectedElements.length > 0 && (
+          <CornerRadiusRange
+            app={app}
+            updateData={(radius) => updateData({ radius })}
+            testId="cornerRadius-slider"
           />
-          {renderAction("togglePolygon")}
-        </div>
-      </fieldset>
+        )}
+      </>
     );
   },
 });

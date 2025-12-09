@@ -259,17 +259,16 @@ export class API {
       fillStyle: rest.fillStyle ?? appState.currentItemFillStyle,
       strokeWidth: rest.strokeWidth ?? appState.currentItemStrokeWidth,
       strokeStyle: rest.strokeStyle ?? appState.currentItemStrokeStyle,
-      roundness: (
-        rest.roundness === undefined
-          ? appState.currentItemRoundness === "round"
-          : rest.roundness
-      )
-        ? {
-            type: isLinearElementType(type)
-              ? ROUNDNESS.PROPORTIONAL_RADIUS
-              : ROUNDNESS.ADAPTIVE_RADIUS,
-          }
-        : null,
+      roundness:
+        rest.roundness !== undefined
+          ? rest.roundness
+          : appState.currentItemRoundness === "round"
+          ? {
+              type: isLinearElementType(type)
+                ? ROUNDNESS.PROPORTIONAL_RADIUS
+                : ROUNDNESS.ADAPTIVE_RADIUS,
+            }
+          : null,
       roughness: rest.roughness ?? appState.currentItemRoughness,
       opacity: rest.opacity ?? appState.currentItemOpacity,
       boundElements: rest.boundElements ?? null,

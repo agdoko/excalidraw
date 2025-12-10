@@ -22,6 +22,7 @@ Excalidraw is a React-based collaborative drawing application published as both 
 - `scripts/` - Build and release automation
 
 **Dependency order (always build in this sequence):**
+
 ```
 common → math → element → excalidraw
 ```
@@ -29,12 +30,14 @@ common → math → element → excalidraw
 ## Essential Commands
 
 ### Development
+
 ```bash
 yarn start              # Dev server on http://localhost:3000
 yarn start:production   # Build and serve production version
 ```
 
 ### Testing
+
 ```bash
 yarn test               # Vitest in watch mode
 yarn test:all          # Full suite (typecheck + lint + test + app tests)
@@ -43,6 +46,7 @@ yarn test:ui           # Vitest UI with coverage visualization
 ```
 
 ### Linting & Formatting
+
 ```bash
 yarn test:code         # ESLint check
 yarn fix               # Auto-fix lint and format issues (prettier + eslint)
@@ -50,6 +54,7 @@ yarn test:typecheck    # TypeScript type checking
 ```
 
 ### Building Packages & App
+
 ```bash
 yarn build             # Build excalidraw-app for production
 yarn build:packages    # Build all npm packages in dependency order
@@ -58,6 +63,7 @@ yarn rm:build          # Clean all build artifacts
 ```
 
 ### Single Test Execution
+
 ```bash
 # Run a specific test file
 vitest /path/to/test.test.ts
@@ -84,15 +90,18 @@ vitest packages/element/tests --watch=false
 ## Build System Details
 
 **Vite Configuration:** `excalidraw-app/vite.config.mts`
+
 - Plugin: `@vitejs/plugin-react`, `vite-plugin-svgr`, `vite-plugin-pwa` (PWA/offline support)
 - Path aliases configured for packages: `@excalidraw/common`, `@excalidraw/element`, etc.
 
 **Package Builds:** Use esbuild for fast bundling
+
 - ESM format with code splitting
 - Generates TypeScript declaration files
 - Build scripts: `scripts/buildPackage.js`, `scripts/buildBase.js`, `scripts/buildUtils.js`
 
 **Test Configuration:** `vitest.config.mts`
+
 - Setup file: `setupTests.ts` (polyfills, mocks for matchMedia, FontFace, IndexedDB)
 - Canvas mocking: `vitest-canvas-mock`
 - Coverage thresholds: lines 60%, branches 70%, functions 63%, statements 60%
@@ -100,6 +109,7 @@ vitest packages/element/tests --watch=false
 ## Key Directories & Patterns
 
 ### Main Package Structure
+
 ```
 packages/excalidraw/
 ├── actions/           # Redux-style action definitions
@@ -112,11 +122,13 @@ packages/excalidraw/
 ```
 
 ### Styling
+
 - CSS modules for components (`.scss` files)
 - SCSS as primary stylesheet language
 - Theme support with CSS custom properties
 
 ### Localization
+
 - i18next for translations
 - ~60 language translations in `packages/excalidraw/locales/`
 
@@ -125,18 +137,21 @@ packages/excalidraw/
 See `.github/copilot-instructions.md` for full guidelines. Key points:
 
 **TypeScript:**
+
 - Use TypeScript for all new code
 - Prefer immutable data (const, readonly)
 - Use optional chaining (?.) and nullish coalescing (??) operators
 - Use the `Point` type from `packages/math/src/types.ts` instead of `{ x, y }` for math-related code
 
 **React:**
+
 - Use functional components with hooks
 - Follow React hooks rules (no conditional hooks)
 - Keep components small and focused
 - Use CSS modules for styling
 
 **General:**
+
 - Be succinct and avoid unnecessary explanations
 - Prefer implementations without allocation
 - Optimize for performance, trading RAM for CPU cycles where appropriate
@@ -145,6 +160,7 @@ See `.github/copilot-instructions.md` for full guidelines. Key points:
 ## Testing Guidelines
 
 **Key Testing Patterns:**
+
 - Use `@testing-library/react` for component testing
 - Mock canvas with `vitest-canvas-mock`
 - Mock browser APIs in `setupTests.ts` (fonts, matchMedia, IndexedDB)
@@ -152,6 +168,7 @@ See `.github/copilot-instructions.md` for full guidelines. Key points:
 - Use `fake-indexeddb` for testing IndexedDB functionality
 
 **Running Tests:**
+
 - Single file: `vitest path/to/file.test.ts`
 - With pattern: `vitest -t "test name pattern"`
 - Full suite: `yarn test:all`
@@ -159,12 +176,15 @@ See `.github/copilot-instructions.md` for full guidelines. Key points:
 ## Common Development Tasks
 
 ### Fixing Test Failures
+
 After making changes, run `yarn test:app` to verify tests pass. Common issues:
+
 - Type errors: Run `yarn test:typecheck`
 - Lint errors: Run `yarn fix:code` to auto-fix
 - Test failures: Run `yarn test:app` in watch mode for quick iteration
 
 ### Adding a New Element Type
+
 1. Define type in element-related files
 2. Add actions in `packages/excalidraw/actions/`
 3. Add rendering logic in `packages/excalidraw/renderer/`
@@ -173,11 +193,13 @@ After making changes, run `yarn test:app` to verify tests pass. Common issues:
 6. Write tests for each piece
 
 ### Modifying Math Utilities
+
 Always include `packages/math/src/types.ts` in context. Use `Point` type instead of `{ x, y }` objects.
 
 ## GitHub Actions & CI
 
 Key workflows:
+
 - `test.yml` - Run test suite on PR
 - `lint.yml` - ESLint checks
 - `test-coverage-pr.yml` - Coverage reporting

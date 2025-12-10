@@ -85,6 +85,7 @@ import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
 import { Range } from "../components/Range";
+import { CornerRadiusRange } from "../components/CornerRadiusRange";
 import {
   ArrowheadArrowIcon,
   ArrowheadBarIcon,
@@ -1546,6 +1547,33 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       </fieldset>
     );
   },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "labels.cornerRadius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        if (!el.roundness || el.roundness.type !== ROUNDNESS.ADAPTIVE_RADIUS) {
+          return el;
+        }
+        return newElementWith(el, {
+          roundness: { ...el.roundness, value },
+        });
+      }),
+      appState: { ...appState, currentItemCornerRadius: value },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ app, updateData }) => (
+    <CornerRadiusRange
+      app={app}
+      updateData={updateData}
+      testId="cornerRadius"
+    />
+  ),
 });
 
 const getArrowheadOptions = (flip: boolean) => {

@@ -215,7 +215,11 @@ export const SelectedShapeActions = ({
 
       {(canChangeRoundness(appState.activeTool.type) ||
         targetElements.some((element) => canChangeRoundness(element.type))) && (
-        <>{renderAction("changeRoundness")}</>
+        <>
+          {renderAction("changeRoundness")}
+          {targetElements.some((element) => element.roundness) &&
+            renderAction("changeCornerRadius")}
+        </>
       )}
 
       {(toolIsArrow(appState.activeTool.type) ||
@@ -406,8 +410,13 @@ const CombinedShapeProperties = ({
               {(canChangeRoundness(appState.activeTool.type) ||
                 targetElements.some((element) =>
                   canChangeRoundness(element.type),
-                )) &&
-                renderAction("changeRoundness")}
+                )) && (
+                <>
+                  {renderAction("changeRoundness")}
+                  {targetElements.some((element) => element.roundness) &&
+                    renderAction("changeCornerRadius")}
+                </>
+              )}
               {renderAction("changeOpacity")}
             </div>
           </PropertiesPopover>

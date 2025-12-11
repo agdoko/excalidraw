@@ -84,6 +84,7 @@ import { RadioSelection } from "../components/RadioSelection";
 import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
+import { CornerRadiusSlider } from "../components/CornerRadiusSlider";
 import { Range } from "../components/Range";
 import {
   ArrowheadArrowIcon,
@@ -1543,9 +1544,33 @@ export const actionChangeRoundness = register<"sharp" | "round">({
           />
           {renderAction("togglePolygon")}
         </div>
+        {renderAction("changeCornerRadius")}
       </fieldset>
     );
   },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "labels.cornerRadius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        if (!el.roundness || el.roundness.type !== ROUNDNESS.ADAPTIVE_RADIUS) {
+          return el;
+        }
+        return newElementWith(el, {
+          roundness: { ...el.roundness, value },
+        });
+      }),
+      appState,
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ app, updateData }) => (
+    <CornerRadiusSlider updateData={updateData} app={app} />
+  ),
 });
 
 const getArrowheadOptions = (flip: boolean) => {

@@ -85,6 +85,7 @@ import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
 import { Range } from "../components/Range";
+import { CornerRadiusRange } from "../components/CornerRadiusRange";
 import {
   ArrowheadArrowIcon,
   ArrowheadBarIcon,
@@ -1507,6 +1508,21 @@ export const actionChangeRoundness = register<"sharp" | "round">({
       (el) => el.roundness?.type === ROUNDNESS.LEGACY,
     );
 
+    const currentRoundnessValue = getFormValue(
+      elements,
+      app,
+      (element) =>
+        hasLegacyRoundness ? null : element.roundness ? "round" : "sharp",
+      (element) =>
+        !isArrowElement(element) && element.hasOwnProperty("roundness"),
+      (hasSelection) => (hasSelection ? null : appState.currentItemRoundness),
+    );
+
+    // Check if any selected elements have adaptive radius (for showing corner radius slider)
+    const hasAdaptiveRadiusElements = targetElements.some(
+      (el) => el.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS,
+    );
+
     return (
       <fieldset>
         <legend>{t("labels.edges")}</legend>
@@ -1525,27 +1541,51 @@ export const actionChangeRoundness = register<"sharp" | "round">({
                 icon: EdgeRoundIcon,
               },
             ]}
-            value={getFormValue(
-              elements,
-              app,
-              (element) =>
-                hasLegacyRoundness
-                  ? null
-                  : element.roundness
-                  ? "round"
-                  : "sharp",
-              (element) =>
-                !isArrowElement(element) && element.hasOwnProperty("roundness"),
-              (hasSelection) =>
-                hasSelection ? null : appState.currentItemRoundness,
-            )}
+            value={currentRoundnessValue}
             onChange={(value) => updateData(value)}
           />
           {renderAction("togglePolygon")}
         </div>
+        {(currentRoundnessValue === "round" || hasAdaptiveRadiusElements) &&
+          renderAction("changeCornerRadius")}
       </fieldset>
     );
   },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "labels.cornerRadius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        // Only update if roundness is enabled and is adaptive radius
+        if (!el.roundness || el.roundness.type !== ROUNDNESS.ADAPTIVE_RADIUS) {
+          return el;
+        }
+        return newElementWith(el, {
+          roundness: {
+            ...el.roundness,
+            value,
+          },
+        });
+      }),
+      appState: {
+        ...appState,
+        currentItemCornerRadius: value,
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ app, elements, updateData }) => (
+    <CornerRadiusRange
+      updateData={updateData}
+      app={app}
+      elements={elements}
+      testId="corner-radius"
+    />
+  ),
 });
 
 const getArrowheadOptions = (flip: boolean) => {

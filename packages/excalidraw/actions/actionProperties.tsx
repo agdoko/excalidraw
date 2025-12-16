@@ -10,6 +10,7 @@ import {
   ARROW_TYPE,
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
+  DEFAULT_ADAPTIVE_RADIUS,
   FONT_FAMILY,
   ROUNDNESS,
   STROKE_WIDTH,
@@ -1543,7 +1544,119 @@ export const actionChangeRoundness = register<"sharp" | "round">({
           />
           {renderAction("togglePolygon")}
         </div>
+        {renderAction("changeCornerRadius")}
       </fieldset>
+    );
+  },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "labels.cornerRadius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        if (!el.roundness || el.roundness.type !== ROUNDNESS.ADAPTIVE_RADIUS) {
+          return el;
+        }
+        return newElementWith(el, {
+          roundness: { ...el.roundness, value },
+        });
+      }),
+      appState: { ...appState, currentItemCornerRadius: value },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData, app }) => {
+    // Hooks must be called unconditionally at top of component
+    const rangeRef = useRef<HTMLInputElement>(null);
+    const valueRef = useRef<HTMLDivElement>(null);
+
+    const selectedElements = getSelectedElements(elements, appState);
+    const adaptiveElements = selectedElements.filter(
+      (el) => el.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS,
+    );
+
+    // Calculate max radius based on smallest dimension across all selected elements
+    // Cap at 200px max as per requirements
+    const maxRadius =
+      adaptiveElements.length > 0
+        ? Math.min(
+            200,
+            ...adaptiveElements.map((el) =>
+              Math.floor(Math.min(el.width, el.height) / 2),
+            ),
+          )
+        : 0;
+
+    // Get the minimum value across selected elements (for multi-selection display)
+    const value = getFormValue(
+      elements,
+      app,
+      (el) => el.roundness?.value ?? DEFAULT_ADAPTIVE_RADIUS,
+      (el) => el.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS,
+      () => appState.currentItemCornerRadius ?? DEFAULT_ADAPTIVE_RADIUS,
+    );
+
+    // Determine if all selected elements have the same corner radius
+    let hasCommonValue = true;
+    const firstElement = adaptiveElements.at(0);
+    adaptiveElements.forEach((el) => {
+      const elValue = el.roundness?.value ?? DEFAULT_ADAPTIVE_RADIUS;
+      const firstValue =
+        firstElement?.roundness?.value ?? DEFAULT_ADAPTIVE_RADIUS;
+      if (elValue !== firstValue) {
+        hasCommonValue = false;
+      }
+    });
+
+    useEffect(() => {
+      if (rangeRef.current && valueRef.current && maxRadius > 0) {
+        const rangeElement = rangeRef.current;
+        const valueElement = valueRef.current;
+        const inputWidth = rangeElement.offsetWidth;
+        const thumbWidth = 15;
+        const normalizedValue =
+          ((value ?? DEFAULT_ADAPTIVE_RADIUS) / maxRadius) * 100;
+        const position =
+          (normalizedValue / 100) * (inputWidth - thumbWidth) + thumbWidth / 2;
+        valueElement.style.left = `${position}px`;
+        rangeElement.style.background = `linear-gradient(to right, var(--color-slider-track) 0%, var(--color-slider-track) ${normalizedValue}%, var(--button-bg) ${normalizedValue}%, var(--button-bg) 100%)`;
+      }
+    }, [value, maxRadius]);
+
+    // Only show slider when there are elements with adaptive radius and max radius >= 4
+    if (adaptiveElements.length === 0 || maxRadius < 4) {
+      return null;
+    }
+
+    return (
+      <label className="control-label" style={{ marginTop: "0.5rem" }}>
+        {t("labels.cornerRadius")}
+        <div className="range-wrapper">
+          <input
+            style={{
+              ["--color-slider-track" as string]: hasCommonValue
+                ? undefined
+                : "var(--button-bg)",
+            }}
+            ref={rangeRef}
+            type="range"
+            min={0}
+            max={maxRadius}
+            step={4}
+            value={value ?? DEFAULT_ADAPTIVE_RADIUS}
+            onChange={(e) => updateData(+e.target.value)}
+            className="range-input"
+            data-testid="corner-radius-slider"
+          />
+          <div className="value-bubble" ref={valueRef}>
+            {value !== 0 ? value : null}
+          </div>
+          <div className="zero-label">0</div>
+        </div>
+      </label>
     );
   },
 });

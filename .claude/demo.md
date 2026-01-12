@@ -5,7 +5,7 @@
 ## Session Overview
 
 | Section | Duration | Content |
-|---------|----------|---------|
+| --- | --- | --- |
 | Installation | 10 min | Live install of Claude Code + Bedrock auth context |
 | Context & Speed | 10 min | CLAUDE.md generation, before/after comparison |
 | Feature Implementation | 40 min | Plan mode, subagents, live coding |
@@ -36,7 +36,9 @@ claude --version
 ```
 
 **Explain Bedrock auth context:**
+
 > "For Bedrock users, your IT deploys an authentication layer:
+>
 > 1. Install Claude Code normally (what I just showed)
 > 2. IT runs the 'Claude Code with Bedrock' solution
 > 3. They provide an installer that sets up an AWS profile
@@ -59,6 +61,7 @@ Switch to pre-configured excalidraw terminal.
 ### Part 3: Feature Implementation (40 min)
 
 **Paste the feature request:**
+
 ```
 Add Variable Corner Radius Control for Rectangle Elements
 - Add slider to properties panel when rectangle is selected
@@ -109,6 +112,7 @@ rm -rf /tmp/claude-demo-*
 ## Troubleshooting
 
 If demo breaks:
+
 1. Show docs: https://code.claude.com/docs/en/overview
 2. Walk through verbally
 3. Move to Q&A

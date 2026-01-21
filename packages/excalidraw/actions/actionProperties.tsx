@@ -85,6 +85,7 @@ import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
 import { Range } from "../components/Range";
+import { CornerRadiusRange } from "../components/CornerRadiusRange";
 import {
   ArrowheadArrowIcon,
   ArrowheadBarIcon,
@@ -1486,6 +1487,10 @@ export const actionChangeRoundness = register<"sharp" | "round">({
                   type: isUsingAdaptiveRadius(el.type)
                     ? ROUNDNESS.ADAPTIVE_RADIUS
                     : ROUNDNESS.PROPORTIONAL_RADIUS,
+                  // Preserve existing value or use current default for adaptive radius
+                  value: isUsingAdaptiveRadius(el.type)
+                    ? el.roundness?.value ?? appState.currentItemCornerRadius
+                    : undefined,
                 }
               : null,
         });
@@ -1505,6 +1510,11 @@ export const actionChangeRoundness = register<"sharp" | "round">({
 
     const hasLegacyRoundness = targetElements.some(
       (el) => el.roundness?.type === ROUNDNESS.LEGACY,
+    );
+
+    // Check if any rounded elements with adaptive radius are selected
+    const hasRoundedSelection = targetElements.some(
+      (el) => el.roundness && isUsingAdaptiveRadius(el.type),
     );
 
     return (
@@ -1543,8 +1553,49 @@ export const actionChangeRoundness = register<"sharp" | "round">({
           />
           {renderAction("togglePolygon")}
         </div>
+        {hasRoundedSelection && renderAction("changeCornerRadius")}
       </fieldset>
     );
+  },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "Change corner radius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(
+        elements,
+        appState,
+        (el) => {
+          // Only apply to elements with roundness enabled
+          if (!el.roundness) {
+            return el;
+          }
+
+          // Constrain value to valid range [0, min(w,h)/2]
+          const maxRadius = Math.min(el.width, el.height) / 2;
+          const constrainedValue = Math.max(0, Math.min(value ?? 0, maxRadius));
+
+          return newElementWith(el, {
+            roundness: {
+              type: el.roundness.type,
+              value: constrainedValue,
+            },
+          });
+        },
+        false,
+      ),
+      appState: {
+        ...appState,
+        currentItemCornerRadius: value,
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ app, updateData }) => {
+    return <CornerRadiusRange updateData={updateData} app={app} />;
   },
 });
 

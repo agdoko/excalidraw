@@ -10,6 +10,7 @@ import {
   STATS_PANELS,
   THEME,
   DEFAULT_GRID_STEP,
+  DEFAULT_ADAPTIVE_RADIUS,
   isTestEnv,
 } from "@excalidraw/common";
 
@@ -38,6 +39,7 @@ export const getDefaultAppState = (): Omit<
     currentItemStartArrowhead: null,
     currentItemStrokeColor: DEFAULT_ELEMENT_PROPS.strokeColor,
     currentItemRoundness: isTestEnv() ? "sharp" : "round",
+    currentItemCornerRadius: DEFAULT_ADAPTIVE_RADIUS,
     currentItemArrowType: ARROW_TYPE.round,
     currentItemStrokeStyle: DEFAULT_ELEMENT_PROPS.strokeStyle,
     currentItemStrokeWidth: DEFAULT_ELEMENT_PROPS.strokeWidth,
@@ -161,6 +163,7 @@ const APP_STATE_STORAGE_CONF = (<
     export: false,
     server: false,
   },
+  currentItemCornerRadius: { browser: true, export: false, server: false },
   currentItemArrowType: {
     browser: true,
     export: false,

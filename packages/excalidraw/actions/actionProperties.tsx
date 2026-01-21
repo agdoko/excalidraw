@@ -10,6 +10,7 @@ import {
   ARROW_TYPE,
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
+  DEFAULT_ADAPTIVE_RADIUS,
   FONT_FAMILY,
   ROUNDNESS,
   STROKE_WIDTH,
@@ -85,6 +86,7 @@ import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
 import { Range } from "../components/Range";
+import { CornerRadiusRange } from "../components/CornerRadiusRange";
 import {
   ArrowheadArrowIcon,
   ArrowheadBarIcon,
@@ -1486,6 +1488,14 @@ export const actionChangeRoundness = register<"sharp" | "round">({
                   type: isUsingAdaptiveRadius(el.type)
                     ? ROUNDNESS.ADAPTIVE_RADIUS
                     : ROUNDNESS.PROPORTIONAL_RADIUS,
+                  ...(isUsingAdaptiveRadius(el.type)
+                    ? {
+                        value:
+                          el.roundness?.value ??
+                          appState.currentItemCornerRadius ??
+                          DEFAULT_ADAPTIVE_RADIUS,
+                      }
+                    : {}),
                 }
               : null,
         });
@@ -1544,6 +1554,65 @@ export const actionChangeRoundness = register<"sharp" | "round">({
           {renderAction("togglePolygon")}
         </div>
       </fieldset>
+    );
+  },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "Change corner radius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        if (isElbowArrow(el) || !el.roundness) {
+          return el;
+        }
+
+        const maxRadius = Math.min(el.width, el.height) / 2;
+        const clampedValue = Math.max(0, Math.min(value || 0, maxRadius));
+
+        return newElementWith(el, {
+          roundness: {
+            ...el.roundness,
+            value: clampedValue,
+          },
+        });
+      }),
+      appState: {
+        ...appState,
+        currentItemCornerRadius: value,
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData, app }) => {
+    const targetElements = getTargetElements(
+      getNonDeletedElements(elements),
+      appState,
+    );
+
+    // Only show if elements have roundness enabled
+    const hasRoundness = targetElements.some((el) => el.roundness !== null);
+
+    if (!hasRoundness) {
+      return null;
+    }
+
+    // Calculate max radius from selected elements
+    const minDimension = targetElements.reduce((min, el) => {
+      return Math.min(min, el.width, el.height);
+    }, Infinity);
+
+    const maxRadius = minDimension / 2;
+
+    return (
+      <CornerRadiusRange
+        updateData={updateData}
+        app={app}
+        maxRadius={maxRadius}
+        testId="corner-radius"
+      />
     );
   },
 });

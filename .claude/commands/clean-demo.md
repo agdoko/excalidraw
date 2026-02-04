@@ -17,6 +17,12 @@ Reset the repository to a clean demo state by:
 Execute these commands in sequence:
 
 ```bash
+# Back up public Claude Code build before any operations
+PUBLIC_BUILD="$HOME/.local/share/claude/versions/2.1.31"
+PUBLIC_BUILD_HOME="$HOME/.claude-public-home/.local/share/claude/versions/2.1.31"
+BACKUP="/tmp/claude-public-backup-$$"
+if [ -f "$PUBLIC_BUILD" ]; then cp "$PUBLIC_BUILD" "$BACKUP"; fi
+
 git checkout master
 git reset --hard checkpoint-claude-working
 rm -f CLAUDE.md
@@ -24,8 +30,24 @@ git clean -fd -e .claude
 yarn rm:build
 yarn clean-install
 claude mcp remove atlassian 2>/dev/null || true
+
+# Restore public Claude Code build if overwritten
+if [ -f "$BACKUP" ]; then
+  for target in "$PUBLIC_BUILD" "$PUBLIC_BUILD_HOME"; do
+    if [ -n "$target" ]; then
+      mkdir -p "$(dirname "$target")"
+      cp "$BACKUP" "$target"
+      chmod +x "$target"
+    fi
+  done
+  rm -f "$BACKUP"
+fi
+
 git checkout -b demo-$(date +%Y%m%d-%H%M%S)
 git status
+
+# Verify public build
+~/.local/bin/claude-public --version 2>/dev/null && echo "Public Claude Code build: OK" || echo "WARNING: Public Claude Code build missing!"
 ```
 
 After completion, confirm the repository is in a clean state, on a new demo branch, with fresh dependencies and no build artifacts. The repo is ready for `yarn start` and PR demos.

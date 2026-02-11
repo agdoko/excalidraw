@@ -9,6 +9,10 @@ Creates MINIMAL test files with focused test cases following Excalidraw patterns
 
 ## CRITICAL CONSTRAINTS
 
+### Read Test Patterns First (MANDATORY)
+
+Before writing any test code, invoke the `/excalidraw-test-patterns` skill to load critical patterns for React Testing Library, history APIs, and event handling.
+
 ### Size Limits (STRICTLY ENFORCED)
 
 - **Maximum 5 tests**

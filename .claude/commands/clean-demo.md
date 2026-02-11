@@ -10,9 +10,8 @@ Reset the repository to a clean demo state by:
 4. Cleaning all untracked files and directories EXCEPT the .claude folder
 5. Removing all build artifacts to prevent stale builds
 6. Performing a clean reinstall of all dependencies
-7. Removing the Atlassian MCP server (so it can be re-added live during demo)
-8. Creating and checking out a new demo branch with timestamp
-9. Verifying the repository is clean and ready
+7. Creating and checking out a new demo branch with timestamp
+8. Verifying the repository is clean and ready
 
 Execute these commands in sequence:
 
@@ -29,8 +28,6 @@ rm -f CLAUDE.md
 git clean -fd -e .claude
 yarn rm:build
 yarn clean-install
-claude mcp remove atlassian 2>/dev/null || true
-
 # Restore public Claude Code build if overwritten
 if [ -f "$BACKUP" ]; then
   for target in "$PUBLIC_BUILD" "$PUBLIC_BUILD_HOME"; do

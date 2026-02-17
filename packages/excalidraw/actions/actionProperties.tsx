@@ -12,6 +12,7 @@ import {
   DEFAULT_FONT_SIZE,
   FONT_FAMILY,
   ROUNDNESS,
+  DEFAULT_ADAPTIVE_RADIUS,
   STROKE_WIDTH,
   VERTICAL_ALIGN,
   KEYS,
@@ -1543,7 +1544,85 @@ export const actionChangeRoundness = register<"sharp" | "round">({
           />
           {renderAction("togglePolygon")}
         </div>
+        {renderAction("changeCornerRadius")}
       </fieldset>
+    );
+  },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "labels.cornerRadius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(elements, appState, (el) => {
+        if (!el.roundness || isElbowArrow(el)) {
+          return el;
+        }
+        return newElementWith(el, {
+          roundness: {
+            type: el.roundness.type,
+            value,
+          },
+        });
+      }),
+      appState: {
+        ...appState,
+        currentItemCornerRadius: value,
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData, app }) => {
+    const targetElements = getTargetElements(
+      getNonDeletedElements(elements),
+      appState,
+    );
+
+    const hasRoundElements = targetElements.some(
+      (el) => el.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS,
+    );
+
+    if (!hasRoundElements) {
+      return null;
+    }
+
+    const value = getFormValue(
+      elements,
+      app,
+      (element) => element.roundness?.value ?? DEFAULT_ADAPTIVE_RADIUS,
+      (element) => element.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS,
+      () => appState.currentItemCornerRadius ?? DEFAULT_ADAPTIVE_RADIUS,
+    );
+
+    const smallestHalfSize = targetElements
+      .filter((el) => el.roundness?.type === ROUNDNESS.ADAPTIVE_RADIUS)
+      .reduce((min, el) => {
+        const half = Math.floor(Math.min(el.width, el.height) / 2);
+        return Math.min(min, half);
+      }, Infinity);
+
+    const maxRadius = Number.isFinite(smallestHalfSize)
+      ? smallestHalfSize
+      : DEFAULT_ADAPTIVE_RADIUS;
+
+    return (
+      <div className="control-label">
+        <label>{t("labels.cornerRadius")}</label>
+        <div className="range-wrapper">
+          <input
+            type="range"
+            min="0"
+            max={maxRadius}
+            step="1"
+            value={value ?? DEFAULT_ADAPTIVE_RADIUS}
+            onChange={(event) => updateData(Number(event.target.value))}
+            data-testid="corner-radius-slider"
+          />
+          <span>{value ?? DEFAULT_ADAPTIVE_RADIUS}</span>
+        </div>
+      </div>
     );
   },
 });

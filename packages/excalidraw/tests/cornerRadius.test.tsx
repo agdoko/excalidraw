@@ -27,7 +27,7 @@ describe("corner radius slider", () => {
     API.updateScene({ elements: [rect] });
     API.setSelectedElements([rect]);
 
-    expect(screen.getByTestId("corner-radius")).toBeTruthy();
+    expect(screen.getByTestId("corner-radius")).toBeInTheDocument();
   });
 
   it("slider is NOT visible when a sharp rectangle is selected", async () => {

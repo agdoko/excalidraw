@@ -29,14 +29,20 @@ export const CornerRadiusRange = ({
     (el) => el.roundness !== null && isUsingAdaptiveRadius(el.type),
   );
 
-  const maxRadius = Math.max(
-    1,
-    Math.floor(
-      Math.min(
-        ...selectedRoundedRects.map((el) => Math.min(el.width, el.height) / 2),
-      ),
-    ),
-  );
+  const isEmpty = selectedRoundedRects.length === 0;
+
+  const maxRadius = isEmpty
+    ? 0
+    : Math.max(
+        1,
+        Math.floor(
+          Math.min(
+            ...selectedRoundedRects.map(
+              (el) => Math.min(el.width, el.height) / 2,
+            ),
+          ),
+        ),
+      );
 
   let hasCommonValue = true;
   const firstElement = selectedRoundedRects.at(0);
@@ -74,6 +80,10 @@ export const CornerRadiusRange = ({
       }%, var(--button-bg) 100%)`;
     }
   }, [value, maxRadius]);
+
+  if (isEmpty) {
+    return null;
+  }
 
   return (
     <label className="control-label">

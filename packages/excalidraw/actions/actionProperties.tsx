@@ -1558,6 +1558,24 @@ export const actionChangeCornerRadius = register<number>({
     if (value === undefined) {
       return false;
     }
+    const targetElements = getTargetElements(
+      getNonDeletedElements(elements),
+      appState,
+    );
+    const roundedRects = targetElements.filter(
+      (el) => el.roundness !== null && isUsingAdaptiveRadius(el.type),
+    );
+    const maxRadius =
+      roundedRects.length > 0
+        ? Math.floor(
+            Math.min(
+              ...roundedRects.map((el) => Math.min(el.width, el.height) / 2),
+            ),
+          )
+        : 0;
+    const safeValue = Math.round(
+      Math.max(0, Math.min(value, maxRadius || value)),
+    );
     return {
       elements: changeProperty(
         elements,
@@ -1570,12 +1588,12 @@ export const actionChangeCornerRadius = register<number>({
             Math.max(0, Math.min(value, Math.min(el.width, el.height) / 2)),
           );
           return newElementWith(el, {
-            roundness: { ...el.roundness!, value: clampedValue },
+            roundness: { ...el.roundness, value: clampedValue },
           });
         },
         true,
       ),
-      appState: { ...appState, currentItemCornerRadius: value },
+      appState: { ...appState, currentItemCornerRadius: safeValue },
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },

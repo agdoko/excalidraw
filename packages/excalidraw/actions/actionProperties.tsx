@@ -85,6 +85,7 @@ import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { FontPicker } from "../components/FontPicker/FontPicker";
 import { IconPicker } from "../components/IconPicker";
 import { Range } from "../components/Range";
+import { CornerRadiusRange } from "../components/CornerRadiusRange";
 import {
   ArrowheadArrowIcon,
   ArrowheadBarIcon,
@@ -1543,9 +1544,57 @@ export const actionChangeRoundness = register<"sharp" | "round">({
           />
           {renderAction("togglePolygon")}
         </div>
+        {renderAction("changeCornerRadius")}
       </fieldset>
     );
   },
+});
+
+export const actionChangeCornerRadius = register<number>({
+  name: "changeCornerRadius",
+  label: "labels.cornerRadius",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    if (value === undefined) {
+      return false;
+    }
+    return {
+      elements: changeProperty(
+        elements,
+        appState,
+        (el) => {
+          if (el.roundness === null || !isUsingAdaptiveRadius(el.type)) {
+            return el;
+          }
+          const clampedValue = Math.round(
+            Math.max(0, Math.min(value, Math.min(el.width, el.height) / 2)),
+          );
+          return newElementWith(el, {
+            roundness: { ...el.roundness!, value: clampedValue },
+          });
+        },
+        true,
+      ),
+      appState: { ...appState, currentItemCornerRadius: value },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  predicate: (elements, appState) => {
+    const targetElements = getTargetElements(
+      getNonDeletedElements(elements),
+      appState,
+    );
+    return targetElements.some(
+      (el) => el.roundness !== null && isUsingAdaptiveRadius(el.type),
+    );
+  },
+  PanelComponent: ({ app, updateData }) => (
+    <CornerRadiusRange
+      updateData={updateData}
+      app={app}
+      testId="corner-radius"
+    />
+  ),
 });
 
 const getArrowheadOptions = (flip: boolean) => {

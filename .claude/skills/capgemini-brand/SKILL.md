@@ -13,18 +13,18 @@ Apply Capgemini branding to the Excalidraw UI by replacing the default purple/in
 3. Apply replacements in this exact order using the Edit tool:
 
 **Step A** — Change `--color-selection` specifically (before the bulk replace):
+
 ```
 old_string: "--color-selection: #6965db"
 new_string: "--color-selection: #12abdb"
 ```
 
-**Step B** — Now replace all remaining `#6965db` → `#0070ad` with `replace_all: true`:
-This changes `--color-primary` (and any other occurrences) to blue.
+**Step B** — Now replace all remaining `#6965db` → `#0070ad` with `replace_all: true`: This changes `--color-primary` (and any other occurrences) to blue.
 
 **Step C** — Apply the remaining replacements (order doesn't matter, use `replace_all: true` where noted):
 
 | Old Value | New Value | Property | replace_all |
-|-----------|-----------|----------|-------------|
+| --- | --- | --- | --- |
 | `#5b57d1` | `#005a8c` | --color-primary-darker | false |
 | `#4a47b1` | `#004a73` | --color-primary-darkest | false |
 | `#e3e2fe` | `#e0f0fa` | --color-primary-light | false |

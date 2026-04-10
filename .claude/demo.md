@@ -1,33 +1,43 @@
-# Excalidraw demo — runbook
+# Excalidraw demo — runbook (SocGen Apr 10)
 
-`claude-public` (≥2.1.32). Agent Teams + in-process mode already enabled in `.claude/settings.local.json`.
+`claude-public` (≥2.1.32). Opus. Agent Teams via env var.
 
-## Pre-flight
+## Pre-flight (one-time, before screen-share)
 
-```
+```bash
 cd ~/code/excalidraw
-claude-public
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1   # required on public build
+./reset.sh                                       # or /clean-demo inside CC — same thing
 ```
+
+**Tmux layout** — two panes, side by side. Left = CC, right = app:
+```bash
+tmux kill-session -t sg 2>/dev/null
+tmux new-session -d -s sg -c ~/code/excalidraw
+tmux split-window -h -t sg -c ~/code/excalidraw
+tmux send-keys -t sg:0.0 'claude-public' C-m
+tmux attach -t sg
 ```
-/mcp           # auth Atlassian — browser pops
-/clean-demo    # hard reset to checkpoint, fresh demo-* branch, yarn reinstall (~1-2 min)
-/model haiku
+Bump font now (⌘+). Left pane is where you live; right pane stays idle until step 6.
+
+In left pane (CC):
 ```
-Second terminal tab ready for `yarn start`.
+/mcp           # auth Atlassian — browser pops, approve
+/model opus
+```
 
 ## Run
 
-| # | Do | Check |
+| # | Do (left pane unless noted) | Check |
 |---|---|---|
 | 1 | `tell me about this codebase` | explores monorepo |
 | 2 | `/init` | shows generated CLAUDE.md |
-| 3 | tab 2: `yarn start` → browser | default purple, sharp/round toggle only. Ctrl+C. |
-| 4 | `/sage-brand` | green `#00D639` lands in theme files |
-| 5 | `find me the jira ticket about corner radius` | MCP → Atlassian, ticket surfaces |
-| 6 | paste **Agent Teams prompt** below | team spawns, Shift+Down cycles teammates |
-| 7 | tab 2: `yarn start` → browser | Sage green chrome + radius slider on rounded rectangles |
+| 3 | right pane: `yarn start` → browser | default purple, sharp/round toggle only. Ctrl+C after. |
+| 4 | `find me the jira ticket about corner radius` | MCP → Atlassian, **MJT-1** surfaces |
+| 5 | paste **Agent Teams prompt** below | team spawns. **Shift+Down** cycles teammates — narrate as you cycle |
+| 6 | right pane: `yarn start` → browser | radius slider on rounded rectangles. Draw one, drag the slider. |
 
-## Agent Teams prompt (paste at step 6)
+## Agent Teams prompt (paste at step 5)
 
 ```
 Create an agent team to implement the corner radius slider from that Jira ticket. Three teammates:
@@ -39,22 +49,22 @@ Create an agent team to implement the corner radius slider from that Jira ticket
 Wait for teammates to finish before proceeding.
 ```
 
-Shift+Down to cycle. `shift+tab` to auto mode first if permission prompts get noisy.
+Shift+Down to cycle. **Do NOT shift+tab to auto** — Agent Teams is incompatible with auto-perms (Adam Wolff, Mar 3). Approve each prompt manually; it's part of the show.
 
 ## Fallback (if team doesn't spawn)
 
-Paste the Jira ticket text, then: `implement this — use the action-integration-agent for the feature and test-agent for tests`. Proven subagent route.
+Paste `jira-ticket.txt`, then: `implement this — use the action-integration-agent for the feature and test-agent for tests`. Proven subagent route. **Have the screen recording from your dry-run open in another window** as second fallback.
 
 ## Reset
 
-`clean up the team` → `/clean-demo`
+`clean up the team` → `/clean-demo` → `tmux kill-session -t sg`
 
 ## Files
 
 ```
 .claude/
-├── agents/       action-integration-agent.md, test-agent.md (used as teammate types)
+├── agents/       action-integration-agent.md, test-agent.md (teammate types)
 ├── commands/     clean-demo.md, demo-pr.md
-├── skills/       sage-brand/, excalidraw-test-patterns/, ecoa-conversion/
+├── skills/       excalidraw-test-patterns/, _sage-brand-disabled/ (parked)
 └── settings.local.json
 ```

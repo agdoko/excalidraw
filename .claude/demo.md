@@ -1,29 +1,28 @@
-# Excalidraw demo — runbook (SocGen Apr 10)
+# Excalidraw demo — runbook (Sage 101, session 2 · Apr 14)
 
-`claude-public` (≥2.1.32). Opus. Agent Teams via env var.
+`claude-public` 2.1.107. Agent Teams via env var (confirmed present at this version).
 
 ## Pre-flight (one-time, before screen-share)
 
 ```bash
 cd ~/code/excalidraw
-export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1   # required on public build
-./reset.sh                                       # or /clean-demo inside CC — same thing
+./reset.sh                                       # hard reset to checkpoint, fresh demo-* branch, worktrees cleared
 ```
 
-**Tmux layout** — two panes, side by side. Left = CC, right = app:
+**Tmux layout** — two panes side by side. Left = CC, right = app:
 ```bash
-tmux kill-session -t sg 2>/dev/null
-tmux new-session -d -s sg -c ~/code/excalidraw
-tmux split-window -h -t sg -c ~/code/excalidraw
-tmux send-keys -t sg:0.0 'claude-public' C-m
-tmux attach -t sg
+tmux kill-session -t sage 2>/dev/null
+tmux new-session -d -s sage -c ~/code/excalidraw
+tmux split-window -h -t sage -c ~/code/excalidraw
+tmux send-keys -t sage:0.0 'claude-public' C-m
+tmux attach -t sage
 ```
-Bump font now (⌘+). Left pane is where you live; right pane stays idle until step 6.
+Bump font (⌘+). Left pane is where you live; right pane idle until step 3.
 
 In left pane (CC):
 ```
-/mcp           # auth Atlassian — browser pops, approve
-/model opus
+/mcp           # confirm Atlassian shows ✓ Connected (HTTP one)
+/model haiku   # matches session 1; switch to opus if Agent Teams misbehaves
 ```
 
 ## Run
@@ -33,11 +32,12 @@ In left pane (CC):
 | 1 | `tell me about this codebase` | explores monorepo |
 | 2 | `/init` | shows generated CLAUDE.md |
 | 3 | right pane: `yarn start` → browser | default purple, sharp/round toggle only. Ctrl+C after. |
-| 4 | `find me the jira ticket about corner radius` | MCP → Atlassian, **MJT-1** surfaces |
-| 5 | paste **Agent Teams prompt** below | team spawns. **Shift+Down** cycles teammates — narrate as you cycle |
-| 6 | right pane: `yarn start` → browser | radius slider on rounded rectangles. Draw one, drag the slider. |
+| 4 | `/sage-brand` | green `#00D639` lands in theme files |
+| 5 | `find me the jira ticket about corner radius` | MCP → Atlassian, **MJT-1** surfaces |
+| 6 | paste **Agent Teams prompt** below | team spawns. **Shift+Down** cycles teammates — narrate as you cycle |
+| 7 | right pane: `yarn start` → browser | Sage green chrome + radius slider on rounded rectangles |
 
-## Agent Teams prompt (paste at step 5)
+## Agent Teams prompt (paste at step 6)
 
 ```
 Create an agent team to implement the corner radius slider from that Jira ticket. Three teammates:
@@ -49,22 +49,22 @@ Create an agent team to implement the corner radius slider from that Jira ticket
 Wait for teammates to finish before proceeding.
 ```
 
-Shift+Down to cycle. **Do NOT shift+tab to auto** — Agent Teams is incompatible with auto-perms (Adam Wolff, Mar 3). Approve each prompt manually; it's part of the show.
+Shift+Down to cycle. **Do NOT shift+tab to auto** — Agent Teams incompatible with auto-perms. Approve each prompt manually; it's part of the show.
 
 ## Fallback (if team doesn't spawn)
 
-Paste `jira-ticket.txt`, then: `implement this — use the action-integration-agent for the feature and test-agent for tests`. Proven subagent route. **Have the screen recording from your dry-run open in another window** as second fallback.
+Say "let me show you the simpler subagent route instead" → paste `jira-ticket.txt`, then: `implement this — use the action-integration-agent for the feature and test-agent for tests`. Proven path. **Have last week's recording open in another window** as second fallback.
 
 ## Reset
 
-`clean up the team` → `/clean-demo` → `tmux kill-session -t sg`
+`clean up the team` → `./reset.sh` (or `/clean-demo`) → `tmux kill-session -t sage`
 
 ## Files
 
 ```
 .claude/
-├── agents/       action-integration-agent.md, test-agent.md (teammate types)
+├── agents/       action-integration-agent.md, test-agent.md
 ├── commands/     clean-demo.md, demo-pr.md
-├── skills/       excalidraw-test-patterns/, _sage-brand-disabled/ (parked)
-└── settings.local.json
+├── skills/       excalidraw-test-patterns/, sage-brand/
+└── settings.local.json   (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1, teammateMode: in-process)
 ```

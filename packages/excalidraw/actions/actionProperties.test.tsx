@@ -1,16 +1,23 @@
+import React from "react";
+
 import { queryByTestId } from "@testing-library/react";
 
 import {
   COLOR_PALETTE,
   DEFAULT_ELEMENT_BACKGROUND_PICKS,
   FONT_FAMILY,
+  ROUNDNESS,
   STROKE_WIDTH,
 } from "@excalidraw/common";
+
+import { getCornerRadius } from "@excalidraw/element";
+
+import { actionChangeCornerRadius } from "./actionProperties";
 
 import { Excalidraw } from "../index";
 import { API } from "../tests/helpers/api";
 import { UI } from "../tests/helpers/ui";
-import { render } from "../tests/test-utils";
+import { render, fireEvent, screen } from "../tests/test-utils";
 
 describe("element locking", () => {
   beforeEach(async () => {
@@ -169,5 +176,66 @@ describe("element locking", () => {
         "active",
       );
     });
+  });
+});
+
+describe("actionChangeCornerRadius", () => {
+  // perform() tests use plain element objects — no render needed
+
+  it("perform sets roundness.value on adaptive-radius rectangle", () => {
+    const el = { id: "rect1", roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS } } as any;
+    const result = actionChangeCornerRadius.perform!(
+      [el],
+      { selectedElementIds: { rect1: true } } as any,
+      25,
+      null as any,
+    );
+    const updated = (result as any).elements[0];
+    expect(updated.roundness?.value).toBe(25);
+  });
+
+  it("perform leaves sharp (null roundness) elements unchanged", () => {
+    const el = { id: "rect2", roundness: null } as any;
+    const result = actionChangeCornerRadius.perform!(
+      [el],
+      { selectedElementIds: { rect2: true } } as any,
+      25,
+      null as any,
+    );
+    const updated = (result as any).elements[0];
+    expect(updated.roundness).toBeNull();
+  });
+
+  it("perform leaves proportional-radius elements unchanged", () => {
+    const el = {
+      id: "diamond1",
+      roundness: { type: ROUNDNESS.PROPORTIONAL_RADIUS },
+    } as any;
+    const result = actionChangeCornerRadius.perform!(
+      [el],
+      { selectedElementIds: { diamond1: true } } as any,
+      25,
+      null as any,
+    );
+    const updated = (result as any).elements[0];
+    expect(updated.roundness?.type).toBe(ROUNDNESS.PROPORTIONAL_RADIUS);
+    expect(updated.roundness?.value).toBeUndefined();
+  });
+
+  it("getCornerRadius clamps oversized value to x/2 for large elements", () => {
+    // Use a large x so the CUTOFF branch does not trigger:
+    // fixedRadiusSize = min(50, 400/2=200) = 50; CUTOFF = 50/0.25 = 200; x(400) > 200 → returns 50
+    const fakeEl = {
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS, value: 50 },
+    } as any;
+    expect(getCornerRadius(400, fakeEl)).toBe(50);
+  });
+
+  it("getCornerRadius returns in-range value when element is above cutoff", () => {
+    // value=30, x=200: fixedRadiusSize=30, CUTOFF=30/0.25=120; 200>120 → returns 30
+    const fakeEl = {
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS, value: 30 },
+    } as any;
+    expect(getCornerRadius(200, fakeEl)).toBe(30);
   });
 });
